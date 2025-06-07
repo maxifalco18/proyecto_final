@@ -1,0 +1,23 @@
+# Entornos virtuales
+.env
+.env.*
+.venv/
+venv/
+jira_venv/
+__pycache__/
+*.pyc
+
+# Archivos de base de datos o caché
+*.db
+*.sqlite3
+pytest_cache/
+*.log
+
+# Archivos de configuración del entorno
+.DS_Store
+.vscode/
+.idea/
+
+# Archivos de datos
+data/*.csv
+*.csv
