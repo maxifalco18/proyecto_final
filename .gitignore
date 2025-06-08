@@ -19,5 +19,5 @@ pytest_cache/
 .idea/
 
 # Archivos de datos
-data/*.csv
-*.csv
+# data/*.csv
+# *.csv
