@@ -1,5 +1,4 @@
-
-# 🧱 Proyecto Integrador – Avance 1
+# 🧱 Proyecto Integrador – Fase 1
 
 Este repositorio corresponde al **Avance 1** del Proyecto Integrador de Henry, enfocado en la construcción de un sistema de análisis de ventas para una empresa distribuida geográficamente. El objetivo es aplicar conceptos de bases de datos, programación orientada a objetos (POO), pruebas unitarias y buenas prácticas de ingeniería de datos.
 
@@ -113,7 +112,6 @@ Para correr los tests:
 ```bash
 pytest tests/test_models.py -v
 ```
-
 ---
 
 ## ✔️ Estado de Avance
@@ -159,3 +157,141 @@ pytest tests/test_models.py -v
 - Los datos cargados desde los `.csv` fueron verificados en cuanto a cantidad de registros y consistencia.
 
 ---
+
+# 🧱 Proyecto Integrador – Fase 2 – Modularización, patrones de diseño y consultas en Python
+
+Esta etapa aborda la modularización del sistema, la aplicación de patrones de diseño, la conexión entre Python y MySQL, y la ejecución de consultas SQL desde código, junto con pruebas unitarias y protección de credenciales.
+
+## ✅ Objetivos de esta fase
+
+- Modularizar el proyecto utilizando patrones de diseño.
+- Crear una clase de conexión a la base de datos aplicando el patrón Singleton.
+- Ejecutar consultas SQL desde Python y devolver resultados como pandas.DataFrame.
+- Aplicar buenas prácticas de desacoplamiento, encapsulamiento y separación de responsabilidades.
+- Proteger credenciales con python-dotenv.
+- Integrar todo en un Jupyter Notebook de presentación.
+- Agregar pruebas unitarias enfocadas en la nueva lógica.
+
+## 📁 Estructura del Proyecto
+
+proyecto_integrador/
+├── data/
+├── src/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── database.py
+│   └── repository.py
+├── sql/
+│   └── load_data.sql
+├── tests/
+│   ├── test_models.py
+│   ├── test_database.py
+│   └── test_repository.py
+├── notebooks/
+│   ├── 1_analisis_exploratorio.ipynb
+│   └── 2_analisis_de_ventas.ipynb
+├── .env
+├── .gitignore
+├── requirements.txt
+└── README.md
+
+## ⚙️ Configuración del entorno
+
+1. Crear entorno virtual:
+    python -m venv venv
+    source venv/bin/activate (o venv\Scripts\activate en Windows)
+
+2. Instalar dependencias:
+    pip install -r requirements.txt
+
+3. Archivo `.env`:
+
+    DB_USER=root
+    DB_PASSWORD=tu_password
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_NAME=proyecto_integrador
+
+4. `.gitignore` debe incluir:
+
+    .env
+
+## 🧠 Patrón Singleton aplicado
+
+Clase DBConnection:
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import os
+from dotenv import load_dotenv
+
+class DBConnection:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            load_dotenv()
+            user = os.getenv("DB_USER")
+            password = os.getenv("DB_PASSWORD")
+            host = os.getenv("DB_HOST")
+            port = os.getenv("DB_PORT")
+            db = os.getenv("DB_NAME")
+
+            cls._instance = super().__new__(cls)
+            url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db}"
+            cls._instance.engine = create_engine(url)
+            cls._instance.Session = sessionmaker(bind=cls._instance.engine)
+        return cls._instance
+
+    def get_session(self):
+        return self.Session()
+
+## 🔍 Consulta SQL desde Python
+
+import pandas as pd
+from src.db.database import DBConnection
+
+def get_top_products(limit=10):
+    session = DBConnection().get_session()
+    query = f'''
+        SELECT p.ProductName, SUM(s.Quantity) AS TotalSold
+        FROM sales s
+        JOIN products p ON s.ProductID = p.ProductID
+        GROUP BY p.ProductName
+        ORDER BY TotalSold DESC
+        LIMIT {limit};
+    '''
+    df = pd.read_sql(query, session.bind)
+    session.close()
+    return df
+
+## 🧪 Test Unitario
+
+from src.db.database import DBConnection
+
+def test_singleton_instance():
+    db1 = DBConnection()
+    db2 = DBConnection()
+    assert db1 is db2
+
+## 📓 Notebook de integración
+
+Incluye:
+
+- Verificación de conexión
+- Ejecución de consultas
+- Resultados visualizados
+- Justificación de patrones
+- Prueba unitaria visible
+
+## ✅ Requisitos cumplidos
+
+| Requisito                                           | Estado |
+|-----------------------------------------------------|--------|
+| Patrón Singleton implementado                       | ✅     |
+| Clase de conexión con SQLAlchemy                    | ✅     |
+| Consulta SQL con pandas                             | ✅     |
+| Variables de entorno con dotenv                     | ✅     |
+| .env ignorado por Git                               | ✅     |
+| Test unitario del patrón                            | ✅     |
+| Notebook completo con resultados visibles           | ✅     |
